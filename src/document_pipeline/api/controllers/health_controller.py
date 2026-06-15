@@ -1,7 +1,7 @@
 """Health and readiness controllers."""
 
 from fastapi import APIRouter, Request
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from temporalio.api.workflowservice.v1 import GetSystemInfoRequest
 
@@ -16,7 +16,7 @@ async def live() -> dict[str, str]:
 
 
 @router.get("/health/ready")
-async def ready(request: Request) -> ORJSONResponse:
+async def ready(request: Request) -> JSONResponse:
     """Check PostgreSQL, Temporal, and object-store access for readiness."""
 
     try:
@@ -26,7 +26,7 @@ async def ready(request: Request) -> ORJSONResponse:
             GetSystemInfoRequest()
         )
     except Exception as exc:
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=503, content={"status": "not_ready", "detail": type(exc).__name__}
         )
-    return ORJSONResponse({"status": "ready"})
+    return JSONResponse({"status": "ready"})

@@ -9,4 +9,3 @@ class DocumentProcessingWorkflowInput:
     """Workflow input containing only the durable run identifier."""
 
     run_id: UUID
-

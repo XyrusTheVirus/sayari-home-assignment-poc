@@ -21,6 +21,7 @@ async def classify_batch_activity(batch_id: UUID) -> None:
         if not should_run:
             return
         tokens = await uow.tokens.get_unfinished_for_batch(batch)
+    activity.heartbeat("started")
     processed = 0
     for token in tokens:
         result = await dependencies.classifier.classify(
@@ -40,5 +41,7 @@ async def classify_batch_activity(batch_id: UUID) -> None:
             )
             if changed:
                 processed += 1
+                activity.heartbeat(str(token.id))
     async with dependencies.uow_factory.transaction() as uow:
         await uow.batches.mark_completed(batch_id, processed)
+    activity.heartbeat("completed")

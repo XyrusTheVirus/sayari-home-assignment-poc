@@ -17,7 +17,7 @@ test:
 	uv run pytest tests/unit
 
 integration-test:
-	uv run pytest tests/integration
+	RUN_COMPOSE_INTEGRATION=1 uv run pytest tests/integration
 
 demo:
 	./scripts/demo.sh

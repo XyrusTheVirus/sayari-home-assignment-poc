@@ -7,7 +7,6 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 
 from document_pipeline.api.controllers import (
     documents_controller,
@@ -75,7 +74,6 @@ def create_app() -> FastAPI:
     fastapi_app = FastAPI(
         title="Document Pipeline POC",
         version="0.1.0",
-        default_response_class=ORJSONResponse,
         lifespan=lifespan,
     )
     install_exception_handlers(fastapi_app)

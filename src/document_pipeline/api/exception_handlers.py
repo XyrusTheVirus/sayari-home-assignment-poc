@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from document_pipeline.errors import PipelineError
@@ -31,7 +31,7 @@ def build_error_response(
     code: str,
     message: str,
     details: Any | None = None,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """Build the standard pretty JSON error envelope."""
 
     error: dict[str, Any] = {
@@ -42,7 +42,7 @@ def build_error_response(
     }
     if details is not None:
         error["details"] = details
-    return ORJSONResponse(status_code=status_code, content={"error": error})
+    return JSONResponse(status_code=status_code, content={"error": error})
 
 
 def register_error_handler(
@@ -53,7 +53,7 @@ def register_error_handler(
     """Register an extensible custom exception-to-JSON mapper."""
 
     @app.exception_handler(exception_type)
-    async def custom_error_handler(_request: Request, exc: Exception) -> ORJSONResponse:
+    async def custom_error_handler(_request: Request, exc: Exception) -> JSONResponse:
         message = config.message(exc) if callable(config.message) else config.message
         details = config.details(exc) if config.details is not None else None
         return build_error_response(
@@ -68,7 +68,7 @@ def install_exception_handlers(app: FastAPI) -> None:
     """Register centralized error mappers on the FastAPI app."""
 
     @app.exception_handler(PipelineError)
-    async def pipeline_error_handler(_request: Request, exc: PipelineError) -> ORJSONResponse:
+    async def pipeline_error_handler(_request: Request, exc: PipelineError) -> JSONResponse:
         return build_error_response(
             status_code=exc.status_code,
             code=exc.code,
@@ -76,9 +76,7 @@ def install_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def http_error_handler(
-        _request: Request, exc: StarletteHTTPException
-    ) -> ORJSONResponse:
+    async def http_error_handler(_request: Request, exc: StarletteHTTPException) -> JSONResponse:
         return build_error_response(
             status_code=exc.status_code,
             code="http_error",
@@ -88,7 +86,7 @@ def install_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(RequestValidationError)
     async def validation_error_handler(
         _request: Request, exc: RequestValidationError
-    ) -> ORJSONResponse:
+    ) -> JSONResponse:
         return build_error_response(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             code="validation_error",
@@ -97,7 +95,7 @@ def install_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_error_handler(_request: Request, _exc: Exception) -> ORJSONResponse:
+    async def unhandled_error_handler(_request: Request, _exc: Exception) -> JSONResponse:
         return build_error_response(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             code="internal_server_error",

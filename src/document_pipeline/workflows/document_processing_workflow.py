@@ -65,6 +65,7 @@ class DocumentProcessingWorkflow:
                             "classify_batch_activity",
                             batch_id,
                             task_queue="classification",
+                            heartbeat_timeout=timedelta(seconds=15),
                             start_to_close_timeout=timedelta(minutes=10),
                             retry_policy=retry_policy,
                         )
