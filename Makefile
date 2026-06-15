@@ -16,8 +16,8 @@ migrate:
 test:
 	uv run pytest tests/unit
 
-integration-test:
-	RUN_COMPOSE_INTEGRATION=1 uv run pytest tests/integration
+integration-test: up
+	RUN_COMPOSE_INTEGRATION=1 uv run pytest tests/integration -vv --tb=short --no-cov
 
 demo:
 	./scripts/demo.sh
