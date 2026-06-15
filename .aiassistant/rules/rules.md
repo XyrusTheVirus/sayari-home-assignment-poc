@@ -660,7 +660,9 @@ Use keyset pagination ordered by `(page_number NULLS LAST, start_offset, id)` or
 
 ### 6.6 API behavior
 
-- Return JSON problem details or another consistent error schema.
+- Keep `src/document_pipeline/api/main.py` as a slim ASGI entry point of at most 2-3 lines; put FastAPI app construction/configuration in an `api/app.py` module and middleware registration in an `api/middleware.py` module.
+- Return a consistent, readable JSON error envelope that includes `status_code`, stable error `code`, human-readable `message`, optional `details`, and `request_id`.
+- Keep error handling extensible for custom exception types through a centralized registration helper or equivalent pattern.
 - Use HTTP 404 for missing documents/runs.
 - Use HTTP 409 for invalid state conflicts.
 - Use HTTP 422 for validation errors.
