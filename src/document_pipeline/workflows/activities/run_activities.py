@@ -11,7 +11,6 @@ from document_pipeline.models.enums import WorkStatus
 from document_pipeline.models.orm.token import TokenORM
 from document_pipeline.services.chunking_service import deterministic_uuid
 from document_pipeline.workflows.activities.dependencies import ActivityDependencies
-from document_pipeline.workflows.contracts import BatchIds, ChunkIds
 
 deps: ActivityDependencies | None = None
 
@@ -32,7 +31,7 @@ def _deps() -> ActivityDependencies:
 
 
 @activity.defn(name="initialize_run_activity")
-async def initialize_run_activity(run_id: UUID) -> ChunkIds:
+async def initialize_run_activity(run_id: UUID) -> list[UUID]:
     """Chunk the immutable source, persist manifests, and mark extraction started."""
 
     dependencies = _deps()
@@ -46,11 +45,11 @@ async def initialize_run_activity(run_id: UUID) -> ChunkIds:
     async with dependencies.uow_factory.transaction() as uow:
         await uow.chunks.bulk_create(chunks)
         await uow.runs.mark_extraction_started(run_id, len(chunks))
-    return ChunkIds([chunk.id for chunk in chunks])
+    return [chunk.id for chunk in chunks]
 
 
 @activity.defn(name="finalize_extraction_activity")
-async def finalize_extraction_activity(run_id: UUID) -> BatchIds:
+async def finalize_extraction_activity(run_id: UUID) -> list[UUID]:
     """Verify extraction barrier, finalize token count, and materialize batches."""
 
     dependencies = _deps()
@@ -61,7 +60,7 @@ async def finalize_extraction_activity(run_id: UUID) -> BatchIds:
         await uow.runs.finalize_extraction(run_id, total_tokens)
         batches = await _build_batches(dependencies, run_id)
         await uow.batches.bulk_create(batches)
-    return BatchIds([batch.id for batch in batches])
+    return [batch.id for batch in batches]
 
 
 @activity.defn(name="start_classification_activity")

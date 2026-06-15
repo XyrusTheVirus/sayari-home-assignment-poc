@@ -7,11 +7,7 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from document_pipeline.workflows.contracts import (
-    BatchIds,
-    ChunkIds,
-    DocumentProcessingWorkflowInput,
-)
+from document_pipeline.workflows.contracts import DocumentProcessingWorkflowInput
 
 
 @workflow.defn
@@ -35,8 +31,7 @@ class DocumentProcessingWorkflow:
                 start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=retry_policy,
             )
-            assert isinstance(chunks, ChunkIds)
-            for window in _windows(chunks.ids, 4):
+            for window in _windows(chunks, 4):
                 await asyncio.gather(
                     *[
                         workflow.execute_activity(
@@ -56,7 +51,6 @@ class DocumentProcessingWorkflow:
                 start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=retry_policy,
             )
-            assert isinstance(batches, BatchIds)
             await workflow.execute_activity(
                 "start_classification_activity",
                 value.run_id,
@@ -64,7 +58,7 @@ class DocumentProcessingWorkflow:
                 start_to_close_timeout=timedelta(minutes=1),
                 retry_policy=retry_policy,
             )
-            for window in _windows(batches.ids, 4):
+            for window in _windows(batches, 4):
                 await asyncio.gather(
                     *[
                         workflow.execute_activity(

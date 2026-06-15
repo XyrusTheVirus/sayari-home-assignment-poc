@@ -1,5 +1,6 @@
 """HTTP controllers for document status, reruns, and token queries."""
 
+from dataclasses import asdict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -34,7 +35,7 @@ async def rerun_document(
     """Create a new isolated processing run for a document."""
 
     result = await service.rerun(document_id, payload.text, payload.reuse_source)
-    return ProcessResponse(**result.__dict__)
+    return ProcessResponse(**asdict(result))
 
 
 @router.get("/documents/{document_id}/status", response_model=DocumentStatusResponse)
@@ -97,5 +98,5 @@ async def list_tokens(
         params.run_id,
     )
     return TokenListResponse(
-        items=[TokenItemResponse(**item.__dict__) for item in items], next_cursor=next_cursor
+        items=[TokenItemResponse(**asdict(item)) for item in items], next_cursor=next_cursor
     )

@@ -10,16 +10,3 @@ class DocumentProcessingWorkflowInput:
 
     run_id: UUID
 
-
-@dataclass(frozen=True)
-class ChunkIds:
-    """Activity result containing extraction chunk IDs."""
-
-    ids: list[UUID]
-
-
-@dataclass(frozen=True)
-class BatchIds:
-    """Activity result containing classification batch IDs."""
-
-    ids: list[UUID]

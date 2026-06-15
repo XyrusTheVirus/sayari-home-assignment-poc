@@ -1,5 +1,7 @@
 """HTTP controllers for starting processing."""
 
+from dataclasses import asdict
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
 from document_pipeline.api.dependencies import get_processing_service
@@ -27,4 +29,4 @@ async def process_document(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="source text is too large"
         )
     result = await service.start(payload.document_id, payload.text)
-    return ProcessResponse(**result.__dict__)
+    return ProcessResponse(**asdict(result))
