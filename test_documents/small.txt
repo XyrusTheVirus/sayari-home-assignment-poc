@@ -1,0 +1,3 @@
+John Smith works at Acme Corp, located at 123 Main St in New York. On June 15, 2026,
+Maria Garcia met with Northstar Technologies at 245 Innovation Ave to discuss the
+Falcon renewal and a follow-up date of 07/01/2026.

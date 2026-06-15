@@ -1,0 +1,77 @@
+[project]
+name = "document-pipeline"
+version = "0.1.0"
+description = "Temporal-backed document extraction and classification POC"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aioboto3>=13.3.0",
+    "alembic>=1.14.0",
+    "asyncpg>=0.30.0",
+    "fastapi>=0.115.0",
+    "greenlet>=3.1.1",
+    "httpx>=0.28.0",
+    "orjson>=3.10.12",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.1",
+    "python-json-logger>=3.2.1",
+    "sqlalchemy>=2.0.36",
+    "temporalio>=1.8.0",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.13.0",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.1",
+]
+
+[project.scripts]
+document-pipeline-api = "document_pipeline.api.main:run"
+document-pipeline-workflow-worker = "document_pipeline.workers.workflow_worker:run"
+document-pipeline-extraction-worker = "document_pipeline.workers.extraction_worker:run"
+document-pipeline-classification-worker = "document_pipeline.workers.classification_worker:run"
+document-pipeline-reconcile = "document_pipeline.services.reconciliation_service:run"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["A", "ASYNC", "B", "C4", "E", "F", "I", "N", "PGH", "RUF", "SIM", "T20", "UP", "W"]
+ignore = ["B008"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["sqlalchemy.ext.mypy.plugin"]
+mypy_path = "src"
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+
+[[tool.mypy.overrides]]
+module = ["aioboto3", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=src/document_pipeline --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["src/document_pipeline"]

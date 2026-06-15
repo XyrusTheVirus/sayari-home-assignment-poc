@@ -1,0 +1,46 @@
+"""Temporal worker entry point for classification activities."""
+
+import asyncio
+import logging
+
+from temporalio.worker import Worker
+
+from document_pipeline.config import get_settings
+from document_pipeline.infrastructure.temporal import create_temporal_client
+from document_pipeline.logging import configure_logging
+from document_pipeline.workflows.activities.classification_activities import classify_batch_activity
+from document_pipeline.workflows.activities.dependencies import create_activity_dependencies
+from document_pipeline.workflows.activities.run_activities import configure
+
+logger = logging.getLogger(__name__)
+
+
+async def main() -> None:
+    """Start the classification worker on the classification task queue."""
+
+    settings = get_settings()
+    configure_logging(settings.log_level)
+    dependencies = create_activity_dependencies()
+    configure(dependencies)
+    client = await create_temporal_client(settings)
+    worker = Worker(
+        client,
+        task_queue=settings.temporal_classification_task_queue,
+        activities=[classify_batch_activity],
+        max_concurrent_activities=settings.classification_worker_concurrency,
+    )
+    logger.info("classification worker started")
+    try:
+        await worker.run()
+    finally:
+        await dependencies.close()
+
+
+def run() -> None:
+    """Synchronous console-script entry point."""
+
+    asyncio.run(main())
+
+
+if __name__ == "__main__":
+    run()
