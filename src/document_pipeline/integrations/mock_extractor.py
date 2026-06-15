@@ -6,6 +6,24 @@ from collections.abc import Iterable
 
 from document_pipeline.integrations.extractor import ExtractedEntity, ExtractionInput
 
+PERSON_FALSE_STARTS = frozenset({"A", "An", "At", "In", "On", "Project", "Room", "The"})
+MONTH_WORDS = frozenset(
+    {
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    }
+)
+
 ENTITY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "ADDRESS",
@@ -78,6 +96,8 @@ class MockExtractor:
         for nlp_type, pattern in ENTITY_PATTERNS:
             for match in pattern.finditer(value.text):
                 text = match.group(0).strip()
+                if nlp_type == "PERSON" and _is_false_person_phrase(text):
+                    continue
                 leading_ws = len(match.group(0)) - len(match.group(0).lstrip())
                 local_start = match.start() + leading_ws
                 local_end = local_start + len(text)
@@ -115,3 +135,12 @@ class MockExtractor:
         """Calculate a simple one-based sentence position inside the chunk."""
 
         return max(1, len(re.findall(r"[.!?]\s+", text[:start])) + 1)
+
+
+def _is_false_person_phrase(text: str) -> bool:
+    """Reject common title-case phrases that the simple person regex overmatches."""
+
+    words = text.split()
+    return bool(words) and (
+        words[0] in PERSON_FALSE_STARTS or any(word in MONTH_WORDS for word in words)
+    )

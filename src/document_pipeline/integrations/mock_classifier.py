@@ -26,6 +26,12 @@ class MockClassifier:
             await asyncio.sleep(self._delay_ms / 1_000)
         text = value.text.strip()
         context = value.context or ""
+        if value.nlp_type == "GPE":
+            return self._result(
+                Classification.UNKNOWN,
+                0.7,
+                "The token is a location, which is outside the supported assignment labels.",
+            )
         if value.nlp_type == "ORG" or re.search(
             r"\b(Corp|Corporation|Inc|Ltd|LLC|Group|Technologies|Bank)\b", text
         ):

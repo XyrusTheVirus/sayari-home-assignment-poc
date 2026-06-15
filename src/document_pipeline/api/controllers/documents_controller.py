@@ -54,6 +54,7 @@ async def get_status(
         active_run_id=status.active_run_id,
         version=status.version,
         status=status.status,
+        processed_tokens=status.classification.completed,
         extraction=StageProgressResponse(
             completed_chunks=status.extraction.completed,
             total_chunks=status.extraction.total,

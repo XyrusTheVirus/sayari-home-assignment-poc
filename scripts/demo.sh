@@ -25,6 +25,12 @@ submit() {
     | curl -fsS -X POST http://localhost:8080/process -H 'Content-Type: application/json' -d @-
 }
 
+query_tokens() {
+  local id=$1
+  local query=$2
+  curl -fsS "http://localhost:8080/documents/${id}/tokens?${query}" | jq .
+}
+
 wait_complete() {
   local id=$1
   local status
@@ -63,7 +69,7 @@ while true; do
   total=$(echo "$status" | jq -r '.classification.total_tokens // 0')
   state=$(echo "$status" | jq -r '.status')
   echo "status=$state processed=$processed total=$total"
-  if [[ "$state" == "CLASSIFYING" && "$processed" -gt 0 && "$processed" -lt "$total" ]]; then
+  if [[ "$seen_progress" == false && "$state" == "CLASSIFYING" && "$processed" -gt 0 && "$processed" -lt "$total" ]]; then
     seen_progress=true
     docker compose stop classification-worker
     persisted=$(curl -fsS "http://localhost:8080/documents/${large_id}/status" | jq -r '.classification.processed_count')
@@ -93,11 +99,26 @@ after=$(wait_complete "$rerun_id" | jq -r '.active_run_id')
 test "$before" != "$after"
 
 phase "5. Concurrent document submissions" "Submit small, medium, and large documents at the same time to exercise independent workflow execution."
-for pair in "concurrent-small test_documents/small.txt" "concurrent-medium test_documents/medium.txt" "concurrent-large test_documents/large.txt"; do
+concurrent_suffix="$(date +%s)"
+concurrent_small_id="concurrent-small-${concurrent_suffix}"
+concurrent_medium_id="concurrent-medium-${concurrent_suffix}"
+concurrent_large_id="concurrent-large-${concurrent_suffix}"
+for pair in \
+  "$concurrent_small_id test_documents/small.txt" \
+  "$concurrent_medium_id test_documents/medium.txt" \
+  "$concurrent_large_id test_documents/large.txt"; do
   set -- $pair
-  submit "$1-$(date +%s)" "$2" >/dev/null &
+  submit "$1" "$2" >/dev/null &
 done
 wait
+wait_complete "$concurrent_small_id" >/dev/null
+wait_complete "$concurrent_medium_id" >/dev/null
+wait_complete "$concurrent_large_id" >/dev/null
 
-phase "6. Filtered token query" "Query the completed small document using classification, page, and NLP type filters."
-curl -fsS "http://localhost:8080/documents/${small_id}/tokens?classification=PERSON&page_number=1&nlp_type=PERSON" | jq .
+phase "6. Filtered token queries" "Query the completed small, medium, and large documents using classification, page, NLP type, and status filters."
+echo "Small document: PERSON tokens on page 1 from PERSON NLP candidates"
+query_tokens "$concurrent_small_id" "classification=PERSON&page_number=1&nlp_type=PERSON"
+echo "Medium document: COMPANY tokens on page 2 from completed ORG NLP candidates"
+query_tokens "$concurrent_medium_id" "classification=COMPANY&page_number=2&nlp_type=ORG&classification_status=COMPLETED"
+echo "Large document: ADDRESS tokens on page 1 from completed ADDRESS NLP candidates"
+query_tokens "$concurrent_large_id" "classification=ADDRESS&page_number=1&nlp_type=ADDRESS&classification_status=COMPLETED&limit=10"

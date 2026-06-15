@@ -180,6 +180,7 @@ async def test_happy_path_small_document(api: ApiHarness) -> None:
     status = await api.wait_for_completion(document_id, accepted["run_id"])
     assert status["active_run_id"] == accepted["run_id"]
     assert status["extraction"]["duration_ms"] is not None
+    assert status["processed_tokens"] == status["classification"]["processed_count"]
     assert status["classification"]["processed_count"] == status["classification"]["total_tokens"]
 
     people = await api.tokens(document_id, classification="PERSON")
@@ -196,6 +197,7 @@ async def test_progress_visibility_for_large_document(api: ApiHarness) -> None:
     progress = await api.wait_for_classification_progress(document_id)
     processed = progress["classification"]["processed_count"]
     total = progress["classification"]["total_tokens"]
+    assert progress["processed_tokens"] == processed
     assert 0 < processed < total
     await api.wait_for_completion(document_id, progress["run_id"])
 

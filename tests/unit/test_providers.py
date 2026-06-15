@@ -15,12 +15,16 @@ from document_pipeline.models.enums import Classification
 async def test_extractor_returns_offsets_and_metadata() -> None:
     """The mock extractor returns sorted entities with absolute offsets and metadata."""
 
-    text = "John Smith works at Acme Corp.\fMaria Garcia visited 123 Main St on 2026-06-15."
+    text = (
+        "John Smith works at Acme Corp. On June 15, 2026, he traveled."
+        "\fMaria Garcia visited 123 Main St on 2026-06-15."
+    )
     entities = await MockExtractor().extract(ExtractionInput(text=text, base_offset=10))
     values = {entity.text: entity for entity in entities}
     assert values["John Smith"].start_offset == 10
     assert values["Maria Garcia"].page_number == 2
     assert values["123 Main St"].nlp_type == "ADDRESS"
+    assert "On June" not in values
 
 
 @pytest.mark.asyncio
@@ -34,3 +38,6 @@ async def test_classifier_maps_supported_labels() -> None:
     assert result.classification == Classification.COMPANY
     assert 0 <= result.confidence <= 1
     assert result.reasoning
+
+    location = await classifier.classify(ClassificationInput(uuid4(), "New York", "", "GPE"))
+    assert location.classification == Classification.UNKNOWN

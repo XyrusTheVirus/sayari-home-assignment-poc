@@ -106,8 +106,9 @@ run processes. The active pointer changes only after the new run reaches `COMPLE
 
 ## 12. Progress and duration tracking
 
-Status includes extraction chunk progress, classification token progress, persisted
-stage timestamps, and finalized wall-clock durations in milliseconds.
+Status includes top-level `processed_tokens`, extraction chunk progress, classification
+token progress, persisted stage timestamps, and finalized wall-clock durations in
+milliseconds.
 
 ## 13. NLP and classifier interfaces
 
@@ -142,6 +143,10 @@ make integration-test
 make lint
 ```
 
+`make integration-test` starts or refreshes the Docker Compose stack, opts into the
+compose-backed tests, disables local coverage for those tests, and prints each integration
+test name as it runs.
+
 ## 16. Demo walkthrough
 
 Run:
@@ -150,10 +155,10 @@ Run:
 make demo
 ```
 
-The script starts the stack, submits a small document, polls completion, queries person
-tokens, submits a large document, shows real-time progress, stops and restarts the
-classification worker for recovery, performs a full rerun, submits concurrent documents,
-and runs filtered token queries.
+The script prints phase banners as it starts the stack, runs the small-document happy
+path, shows large-document classification progress, stops and restarts the classification
+worker for recovery, performs a full rerun, submits small/medium/large documents
+concurrently, and runs filtered token queries for each document size.
 
 ## 17. Failure handling and retry behavior
 

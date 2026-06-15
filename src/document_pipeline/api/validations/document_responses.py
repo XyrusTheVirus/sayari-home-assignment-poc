@@ -23,6 +23,7 @@ class DocumentStatusResponse(BaseModel):
     active_run_id: UUID | None
     version: int
     status: RunStatus
+    processed_tokens: int
     extraction: StageProgressResponse
     classification: StageProgressResponse
     error: StatusErrorResponse | None
