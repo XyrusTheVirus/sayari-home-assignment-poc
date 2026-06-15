@@ -23,5 +23,7 @@ async def ready(request: Request) -> ORJSONResponse:
             await session.execute(text("SELECT 1"))
         await request.app.state.temporal_client.workflow_service.get_system_info()
     except Exception as exc:
-        return ORJSONResponse(status_code=503, content={"status": "not_ready", "detail": type(exc).__name__})
+        return ORJSONResponse(
+            status_code=503, content={"status": "not_ready", "detail": type(exc).__name__}
+        )
     return ORJSONResponse({"status": "ready"})

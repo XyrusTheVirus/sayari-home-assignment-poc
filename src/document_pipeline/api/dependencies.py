@@ -1,6 +1,7 @@
 """FastAPI dependency factories."""
 
 from collections.abc import AsyncIterator
+from typing import cast
 
 from fastapi import Request
 
@@ -12,19 +13,19 @@ from document_pipeline.services.rerun_service import RerunService
 async def get_processing_service(request: Request) -> ProcessingService:
     """Return the app-scoped processing service."""
 
-    return request.app.state.processing_service
+    return cast(ProcessingService, request.app.state.processing_service)
 
 
 async def get_rerun_service(request: Request) -> RerunService:
     """Return the app-scoped rerun service."""
 
-    return request.app.state.rerun_service
+    return cast(RerunService, request.app.state.rerun_service)
 
 
 async def get_query_service(request: Request) -> DocumentQueryService:
     """Return the app-scoped query service."""
 
-    return request.app.state.query_service
+    return cast(DocumentQueryService, request.app.state.query_service)
 
 
 async def lifespan_dependencies(request: Request) -> AsyncIterator[None]:

@@ -11,11 +11,11 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
+COPY src ./src
 RUN uv sync --frozen --no-dev || uv sync --no-dev
 
 COPY alembic.ini compose.yaml ./
 COPY migrations ./migrations
-COPY src ./src
 COPY scripts ./scripts
 COPY test_documents ./test_documents
 

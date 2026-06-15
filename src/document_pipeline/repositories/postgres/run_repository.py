@@ -115,7 +115,10 @@ class PostgresRunRepository:
         """Set classification start metadata once."""
 
         row = await self._session.get(DocumentRunORM, run_id, with_for_update=True)
-        if row is None or row.status not in {RunStatus.CLASSIFICATION_PENDING, RunStatus.CLASSIFYING}:
+        if row is None or row.status not in {
+            RunStatus.CLASSIFICATION_PENDING,
+            RunStatus.CLASSIFYING,
+        }:
             raise InvalidRunStateError(f"run {run_id} cannot start classification")
         row.status = RunStatus.CLASSIFYING
         row.classification_started_at = row.classification_started_at or datetime.now(UTC)

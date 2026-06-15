@@ -85,7 +85,9 @@ class PostgresChunkRepository:
 
         rows = (
             await self._session.scalars(
-                select(DocumentChunkORM).where(DocumentChunkORM.run_id == run_id).order_by(DocumentChunkORM.chunk_index)
+                select(DocumentChunkORM)
+                .where(DocumentChunkORM.run_id == run_id)
+                .order_by(DocumentChunkORM.chunk_index)
             )
         ).all()
         return [chunk_manifest(row) for row in rows]
@@ -96,6 +98,8 @@ class PostgresChunkRepository:
         value = await self._session.scalar(
             select(func.count())
             .select_from(DocumentChunkORM)
-            .where(DocumentChunkORM.run_id == run_id, DocumentChunkORM.status != WorkStatus.COMPLETED)
+            .where(
+                DocumentChunkORM.run_id == run_id, DocumentChunkORM.status != WorkStatus.COMPLETED
+            )
         )
         return int(value or 0)

@@ -1,9 +1,19 @@
 """ORM model for versioned document processing runs."""
 
+from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from document_pipeline.models.enums import RunStatus
@@ -26,9 +36,12 @@ class DocumentRunORM(TimestampMixin, Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     document_id: Mapped[UUID] = mapped_column(
-        PgUUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), nullable=False, index=True
+        PG_UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     source_uri: Mapped[str] = mapped_column(Text, nullable=False)
@@ -40,10 +53,18 @@ class DocumentRunORM(TimestampMixin, Base):
     completed_chunks: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     total_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     classified_tokens: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    extraction_started_at = mapped_column(nullable=True)
-    extraction_completed_at = mapped_column(nullable=True)
-    classification_started_at = mapped_column(nullable=True)
-    classification_completed_at = mapped_column(nullable=True)
+    extraction_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    extraction_completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    classification_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    classification_completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     extractor_version: Mapped[str] = mapped_column(Text, nullable=False)
     classifier_version: Mapped[str] = mapped_column(Text, nullable=False)
     model_version: Mapped[str | None] = mapped_column(Text, nullable=True)

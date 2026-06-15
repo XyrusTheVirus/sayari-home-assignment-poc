@@ -68,7 +68,9 @@ class ChunkingService:
 
         manifests: list[ChunkManifest] = []
         for item in self.slice_text(text):
-            chunk_id = deterministic_uuid(run_id, f"chunk:{item.chunk_index}:{item.core_start}:{item.core_end}")
+            chunk_id = deterministic_uuid(
+                run_id, f"chunk:{item.chunk_index}:{item.core_start}:{item.core_end}"
+            )
             key = f"runs/{run_id}/chunks/{item.chunk_index:06d}.txt"
             uri = await store.put_text(key, item.text)
             manifests.append(

@@ -29,34 +29,42 @@ class PostgresTokenRepository:
 
         if not tokens:
             return 0
-        statement = insert(TokenORM).values(
-            [
-                {
-                    "id": item.id,
-                    "run_id": item.run_id,
-                    "chunk_id": item.chunk_id,
-                    "local_index": item.local_index,
-                    "text": item.text,
-                    "normalized_text_hash": item.normalized_text_hash,
-                    "nlp_type": item.nlp_type,
-                    "start_offset": item.start_offset,
-                    "end_offset": item.end_offset,
-                    "page_number": item.page_number,
-                    "paragraph_number": item.paragraph_number,
-                    "sentence_number": item.sentence_number,
-                    "context": item.context,
-                    "classification_status": TokenStatus.PENDING,
-                }
-                for item in tokens
-            ]
-        ).on_conflict_do_nothing(index_elements=["run_id", "start_offset", "end_offset", "normalized_text_hash"])
+        statement = (
+            insert(TokenORM)
+            .values(
+                [
+                    {
+                        "id": item.id,
+                        "run_id": item.run_id,
+                        "chunk_id": item.chunk_id,
+                        "local_index": item.local_index,
+                        "text": item.text,
+                        "normalized_text_hash": item.normalized_text_hash,
+                        "nlp_type": item.nlp_type,
+                        "start_offset": item.start_offset,
+                        "end_offset": item.end_offset,
+                        "page_number": item.page_number,
+                        "paragraph_number": item.paragraph_number,
+                        "sentence_number": item.sentence_number,
+                        "context": item.context,
+                        "classification_status": TokenStatus.PENDING,
+                    }
+                    for item in tokens
+                ]
+            )
+            .on_conflict_do_nothing(
+                index_elements=["run_id", "start_offset", "end_offset", "normalized_text_hash"]
+            )
+        )
         await self._session.execute(statement)
         return len(tokens)
 
     async def count_by_run(self, run_id: UUID) -> int:
         """Count all extracted tokens for a run."""
 
-        value = await self._session.scalar(select(func.count()).select_from(TokenORM).where(TokenORM.run_id == run_id))
+        value = await self._session.scalar(
+            select(func.count()).select_from(TokenORM).where(TokenORM.run_id == run_id)
+        )
         return int(value or 0)
 
     async def completed_count(self, run_id: UUID) -> int:
@@ -65,7 +73,9 @@ class PostgresTokenRepository:
         value = await self._session.scalar(
             select(func.count())
             .select_from(TokenORM)
-            .where(TokenORM.run_id == run_id, TokenORM.classification_status == TokenStatus.COMPLETED)
+            .where(
+                TokenORM.run_id == run_id, TokenORM.classification_status == TokenStatus.COMPLETED
+            )
         )
         return int(value or 0)
 
@@ -156,7 +166,9 @@ class PostgresTokenRepository:
             next_cursor = TokenCursor(last.page_number, last.start_offset, last.id)
         return page, next_cursor
 
-    def _apply_filters(self, statement: Select[tuple[TokenORM]], filters: TokenFilters) -> Select[tuple[TokenORM]]:
+    def _apply_filters(
+        self, statement: Select[tuple[TokenORM]], filters: TokenFilters
+    ) -> Select[tuple[TokenORM]]:
         """Apply optional filters without changing the deterministic ordering."""
 
         if filters.classification is not None:
@@ -166,5 +178,7 @@ class PostgresTokenRepository:
         if filters.nlp_type is not None:
             statement = statement.where(TokenORM.nlp_type == filters.nlp_type)
         if filters.classification_status is not None:
-            statement = statement.where(TokenORM.classification_status == filters.classification_status)
+            statement = statement.where(
+                TokenORM.classification_status == filters.classification_status
+            )
         return statement

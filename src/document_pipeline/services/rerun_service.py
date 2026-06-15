@@ -22,10 +22,13 @@ class RerunService:
         self._store = store
         self._processing_service = processing_service
 
-    async def rerun(self, external_id: str, text: str | None, reuse_source: bool) -> StartProcessingResult:
+    async def rerun(
+        self, external_id: str, text: str | None, reuse_source: bool
+    ) -> StartProcessingResult:
         """Start a new full run from new text or the latest source object."""
 
-        if (text is None) == reuse_source:
+        has_text = text is not None and bool(text.strip())
+        if has_text == reuse_source:
             raise RunConflictError("provide exactly one of text or reuse_source=true")
         if reuse_source:
             async with self._uow_factory.transaction() as uow:

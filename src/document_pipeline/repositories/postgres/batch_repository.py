@@ -89,6 +89,9 @@ class PostgresBatchRepository:
         value = await self._session.scalar(
             select(func.count())
             .select_from(ClassificationBatchORM)
-            .where(ClassificationBatchORM.run_id == run_id, ClassificationBatchORM.status != WorkStatus.COMPLETED)
+            .where(
+                ClassificationBatchORM.run_id == run_id,
+                ClassificationBatchORM.status != WorkStatus.COMPLETED,
+            )
         )
         return int(value or 0)

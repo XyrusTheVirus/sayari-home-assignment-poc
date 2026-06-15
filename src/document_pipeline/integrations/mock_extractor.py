@@ -7,11 +7,32 @@ from collections.abc import Iterable
 from document_pipeline.integrations.extractor import ExtractedEntity, ExtractionInput
 
 ENTITY_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
-    ("ADDRESS", re.compile(r"\b\d{1,6}\s+[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){0,4}\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Lane|Ln|Drive|Dr|Way|Court|Ct)\b")),
-    ("DATE", re.compile(r"\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},\s+\d{4}\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b")),
-    ("ORG", re.compile(r"\b[A-Z][A-Za-z&.'-]*(?:\s+[A-Z][A-Za-z&.'-]*){0,4}\s+(?:Corp|Corporation|Inc|Ltd|LLC|Group|Technologies|Bank|Partners|Systems)\b")),
+    (
+        "ADDRESS",
+        re.compile(
+            r"\b\d{1,6}\s+[A-Z][A-Za-z0-9.'-]*(?:\s+[A-Z][A-Za-z0-9.'-]*){0,4}\s+(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Lane|Ln|Drive|Dr|Way|Court|Ct)\b"
+        ),
+    ),
+    (
+        "DATE",
+        re.compile(
+            r"\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+\d{1,2},\s+\d{4}\b|\b\d{1,2}/\d{1,2}/\d{2,4}\b|\b\d{4}-\d{2}-\d{2}\b"
+        ),
+    ),
+    (
+        "ORG",
+        re.compile(
+            r"\b[A-Z][A-Za-z&.'-]*(?:\s+[A-Z][A-Za-z&.'-]*){0,4}\s+(?:Corp|Corporation|Inc|Ltd|LLC|Group|Technologies|Bank|Partners|Systems)\b"
+        ),
+    ),
     ("PERSON", re.compile(r"\b(?:Dr\.|Ms\.|Mr\.)?\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,2}\b")),
-    ("GPE", re.compile(r"\b(?:New York|London|Paris|Berlin|Tel Aviv|San Francisco|Chicago|Boston|Austin|Seattle)\b")),
+    (
+        "GPE",
+        re.compile(
+            r"\b(?:New York|London|Paris|Berlin|Tel Aviv|San Francisco|Chicago|"
+            r"Boston|Austin|Seattle)\b"
+        ),
+    ),
 )
 
 
@@ -32,11 +53,20 @@ class MockExtractor:
         if self._delay_ms:
             await asyncio.sleep(self._delay_ms / 1_000)
         candidates = list(self._iter_candidates(value))
-        candidates.sort(key=lambda item: (item.start_offset, -(item.end_offset - item.start_offset), item.nlp_type))
+        candidates.sort(
+            key=lambda item: (
+                item.start_offset,
+                -(item.end_offset - item.start_offset),
+                item.nlp_type,
+            )
+        )
         selected: list[ExtractedEntity] = []
         occupied: list[tuple[int, int]] = []
         for candidate in candidates:
-            if any(candidate.start_offset < end and candidate.end_offset > start for start, end in occupied):
+            if any(
+                candidate.start_offset < end and candidate.end_offset > start
+                for start, end in occupied
+            ):
                 continue
             selected.append(candidate)
             occupied.append((candidate.start_offset, candidate.end_offset))

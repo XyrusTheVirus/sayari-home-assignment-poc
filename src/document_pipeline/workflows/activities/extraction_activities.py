@@ -23,11 +23,16 @@ async def extract_chunk_activity(chunk_id: UUID) -> None:
         if not should_run:
             return
     text = await dependencies.store.get_text(chunk.object_uri)
-    extracted = await dependencies.extractor.extract(ExtractionInput(text=text, base_offset=chunk.read_start, page_base=1))
+    extracted = await dependencies.extractor.extract(
+        ExtractionInput(text=text, base_offset=chunk.read_start, page_base=1)
+    )
     owned = [item for item in extracted if chunk.core_start <= item.start_offset < chunk.core_end]
     tokens = [
         TokenCreate(
-            id=deterministic_uuid(chunk.run_id, f"token:{item.start_offset}:{item.end_offset}:{normalized_hash(item.text)}"),
+            id=deterministic_uuid(
+                chunk.run_id,
+                f"token:{item.start_offset}:{item.end_offset}:{normalized_hash(item.text)}",
+            ),
             run_id=chunk.run_id,
             chunk_id=chunk.id,
             local_index=index,

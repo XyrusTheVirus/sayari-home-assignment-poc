@@ -4,7 +4,13 @@ from pathlib import Path
 
 PEOPLE = ["Ava Morgan", "Noah Patel", "Mia Chen", "Liam Brooks", "Sophia Rivera"]
 COMPANIES = ["Acme Corp", "Northstar Technologies", "Helios Bank", "Cedar Systems", "Atlas Group"]
-STREETS = ["100 Market Street", "245 Innovation Ave", "18 Cedar Road", "700 Mission Blvd", "42 Lake Drive"]
+STREETS = [
+    "100 Market Street",
+    "245 Innovation Ave",
+    "18 Cedar Road",
+    "700 Mission Blvd",
+    "42 Lake Drive",
+]
 CITIES = ["New York", "San Francisco", "Chicago", "Boston", "Austin"]
 
 
@@ -20,9 +26,10 @@ def build_document(records: int = 35) -> str:
         month = (index % 12) + 1
         day = (index % 27) + 1
         paragraphs.append(
-            f"On 2026-{month:02d}-{day:02d}, {person} confirmed that {company} opened a review office "
-            f"at {street} in {city}. The record references Project Falcon {index}, which remains an "
-            f"internal label rather than a named entity. {company} expects a follow-up meeting with {person} "
+            f"On 2026-{month:02d}-{day:02d}, {person} confirmed that {company} "
+            f"opened a review office at {street} in {city}. The record references "
+            f"Project Falcon {index}, which remains an internal label rather than a "
+            f"named entity. {company} expects a follow-up meeting with {person} "
             f"on June {day}, 2026.\n"
         )
         if index == records // 2:

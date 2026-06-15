@@ -1,12 +1,17 @@
 """Deterministic Temporal workflow for document processing."""
 
 import asyncio
+from collections.abc import Sequence
 from datetime import timedelta
 
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from document_pipeline.workflows.contracts import BatchIds, ChunkIds, DocumentProcessingWorkflowInput
+from document_pipeline.workflows.contracts import (
+    BatchIds,
+    ChunkIds,
+    DocumentProcessingWorkflowInput,
+)
 
 
 @workflow.defn
@@ -17,7 +22,11 @@ class DocumentProcessingWorkflow:
     async def run(self, value: DocumentProcessingWorkflowInput) -> None:
         """Run the complete two-stage processing lifecycle for one run ID."""
 
-        retry_policy = RetryPolicy(maximum_attempts=5, initial_interval=timedelta(seconds=1), maximum_interval=timedelta(seconds=20))
+        retry_policy = RetryPolicy(
+            maximum_attempts=5,
+            initial_interval=timedelta(seconds=1),
+            maximum_interval=timedelta(seconds=20),
+        )
         try:
             chunks = await workflow.execute_activity(
                 "initialize_run_activity",
@@ -85,7 +94,7 @@ class DocumentProcessingWorkflow:
             raise
 
 
-def _windows(values: list[object], size: int) -> list[list[object]]:
+def _windows[T](values: Sequence[T], size: int) -> list[list[T]]:
     """Return bounded deterministic windows for workflow fan-out."""
 
-    return [values[index : index + size] for index in range(0, len(values), size)]
+    return [list(values[index : index + size]) for index in range(0, len(values), size)]

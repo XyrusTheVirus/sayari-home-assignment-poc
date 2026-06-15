@@ -1,9 +1,20 @@
 """ORM model for extracted token candidates and classification results."""
 
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, Index, Integer, String, Text, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID as PgUUID
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from document_pipeline.models.enums import Classification, TokenStatus
@@ -23,7 +34,9 @@ class TokenORM(TimestampMixin, Base):
             name="uq_tokens_run_span_hash",
         ),
         CheckConstraint("start_offset <= end_offset", name="token_offsets_valid"),
-        CheckConstraint("confidence IS NULL OR (confidence >= 0 AND confidence <= 1)", name="confidence_valid"),
+        CheckConstraint(
+            "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)", name="confidence_valid"
+        ),
         Index("ix_tokens_run_page", "run_id", "page_number", "start_offset", "id"),
         Index("ix_tokens_run_classification", "run_id", "classification", "id"),
         Index(
@@ -35,12 +48,18 @@ class TokenORM(TimestampMixin, Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
     run_id: Mapped[UUID] = mapped_column(
-        PgUUID(as_uuid=True), ForeignKey("document_runs.id", ondelete="CASCADE"), nullable=False, index=True
+        PG_UUID(as_uuid=True),
+        ForeignKey("document_runs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     chunk_id: Mapped[UUID] = mapped_column(
-        PgUUID(as_uuid=True), ForeignKey("document_chunks.id", ondelete="CASCADE"), nullable=False, index=True
+        PG_UUID(as_uuid=True),
+        ForeignKey("document_chunks.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     local_index: Mapped[int] = mapped_column(Integer, nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
@@ -53,7 +72,8 @@ class TokenORM(TimestampMixin, Base):
     sentence_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     context: Mapped[str | None] = mapped_column(Text, nullable=True)
     classification_status: Mapped[TokenStatus] = mapped_column(
-        Enum(TokenStatus, values_callable=enum_values, name="token_status"), default=TokenStatus.PENDING
+        Enum(TokenStatus, values_callable=enum_values, name="token_status"),
+        default=TokenStatus.PENDING,
     )
     classification: Mapped[Classification | None] = mapped_column(
         Enum(Classification, values_callable=enum_values, name="classification"), nullable=True
@@ -63,4 +83,4 @@ class TokenORM(TimestampMixin, Base):
     classifier_version: Mapped[str | None] = mapped_column(Text, nullable=True)
     model_version: Mapped[str | None] = mapped_column(Text, nullable=True)
     prompt_version: Mapped[str | None] = mapped_column(Text, nullable=True)
-    classified_at = mapped_column(nullable=True)
+    classified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -38,6 +38,5 @@ class UnitOfWorkFactory:
     async def transaction(self) -> AsyncIterator[UnitOfWork]:
         """Yield repositories inside a committed or rolled-back transaction."""
 
-        async with self._session_factory() as session:
-            async with session.begin():
-                yield UnitOfWork(session)
+        async with self._session_factory() as session, session.begin():
+            yield UnitOfWork(session)

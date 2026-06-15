@@ -1,5 +1,6 @@
 """S3-compatible object-store adapter backed by MinIO locally."""
 
+from typing import Any, cast
 from urllib.parse import urlparse
 
 import aioboto3
@@ -44,7 +45,7 @@ class MinioObjectStore:
                     data = await stream.read()
         except (BotoCoreError, ClientError) as exc:
             raise ObjectStoreUnavailableError("failed to read object") from exc
-        return data.decode("utf-8")
+        return cast(str, data.decode("utf-8"))
 
     async def exists(self, uri: str) -> bool:
         """Return true when the object exists and is accessible."""
@@ -60,7 +61,7 @@ class MinioObjectStore:
     async def close(self) -> None:
         """No-op for aioboto3 session-backed clients."""
 
-    def _client(self) -> object:
+    def _client(self) -> Any:
         """Create a short-lived async S3 client."""
 
         return self._session.client(

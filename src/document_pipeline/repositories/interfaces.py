@@ -1,11 +1,19 @@
 """Repository protocols that keep services independent from SQLAlchemy details."""
 
 from dataclasses import dataclass
+from typing import Protocol
 from uuid import UUID
 
 from document_pipeline.integrations.classifier import ClassificationResult
-from document_pipeline.models.domain import BatchManifest, ChunkManifest, DocumentRef, RunRecord, TokenCreate, TokenView
-from document_pipeline.models.enums import Classification, RunStatus, TokenStatus, WorkStatus
+from document_pipeline.models.domain import (
+    BatchManifest,
+    ChunkManifest,
+    DocumentRef,
+    RunRecord,
+    TokenCreate,
+    TokenView,
+)
+from document_pipeline.models.enums import Classification, RunStatus, TokenStatus
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,7 +35,7 @@ class TokenCursor:
     token_id: UUID
 
 
-class DocumentRepository:
+class DocumentRepository(Protocol):
     """Persistence contract for logical documents."""
 
     async def get_by_external_id(self, external_id: str) -> DocumentRef | None: ...
@@ -36,7 +44,7 @@ class DocumentRepository:
     async def publish_active_run(self, document_id: UUID, run_id: UUID) -> None: ...
 
 
-class RunRepository:
+class RunRepository(Protocol):
     """Persistence contract for versioned document runs."""
 
     async def create(
@@ -61,7 +69,7 @@ class RunRepository:
     async def mark_failed(self, run_id: UUID, code: str, detail: str) -> None: ...
 
 
-class ChunkRepository:
+class ChunkRepository(Protocol):
     """Persistence contract for extraction work chunks."""
 
     async def bulk_create(self, chunks: list[ChunkManifest]) -> None: ...
@@ -72,7 +80,7 @@ class ChunkRepository:
     async def incomplete_count(self, run_id: UUID) -> int: ...
 
 
-class TokenRepository:
+class TokenRepository(Protocol):
     """Persistence contract for token candidates and classification results."""
 
     async def bulk_upsert(self, tokens: list[TokenCreate]) -> int: ...
@@ -95,7 +103,7 @@ class TokenRepository:
     async def completed_count(self, run_id: UUID) -> int: ...
 
 
-class BatchRepository:
+class BatchRepository(Protocol):
     """Persistence contract for classification batches."""
 
     async def bulk_create(self, batches: list[BatchManifest]) -> None: ...

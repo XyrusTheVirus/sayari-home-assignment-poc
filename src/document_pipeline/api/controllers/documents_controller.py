@@ -20,8 +20,12 @@ from document_pipeline.services.rerun_service import RerunService
 router = APIRouter(tags=["documents"])
 
 
-@router.post("/api/v1/documents/{document_id}/rerun", response_model=ProcessResponse, status_code=202)
-@router.post("/api/v1/documents/{document_id}/runs", response_model=ProcessResponse, status_code=202)
+@router.post(
+    "/api/v1/documents/{document_id}/rerun", response_model=ProcessResponse, status_code=202
+)
+@router.post(
+    "/api/v1/documents/{document_id}/runs", response_model=ProcessResponse, status_code=202
+)
 async def rerun_document(
     document_id: str,
     payload: RerunRequest,
@@ -92,4 +96,6 @@ async def list_tokens(
         params.cursor,
         params.run_id,
     )
-    return TokenListResponse(items=[TokenItemResponse(**item.__dict__) for item in items], next_cursor=next_cursor)
+    return TokenListResponse(
+        items=[TokenItemResponse(**item.__dict__) for item in items], next_cursor=next_cursor
+    )

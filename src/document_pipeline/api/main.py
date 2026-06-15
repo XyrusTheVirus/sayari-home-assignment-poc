@@ -10,7 +10,11 @@ import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import ORJSONResponse
 
-from document_pipeline.api.controllers import documents_controller, health_controller, process_controller
+from document_pipeline.api.controllers import (
+    documents_controller,
+    health_controller,
+    process_controller,
+)
 from document_pipeline.api.exception_handlers import install_exception_handlers
 from document_pipeline.config import get_settings
 from document_pipeline.infrastructure.database import create_engine, create_session_factory
@@ -65,7 +69,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await engine.dispose()
 
 
-app = FastAPI(title="Document Pipeline POC", version="0.1.0", default_response_class=ORJSONResponse, lifespan=lifespan)
+app = FastAPI(
+    title="Document Pipeline POC",
+    version="0.1.0",
+    default_response_class=ORJSONResponse,
+    lifespan=lifespan,
+)
 install_exception_handlers(app)
 app.include_router(health_controller.router)
 app.include_router(process_controller.router)

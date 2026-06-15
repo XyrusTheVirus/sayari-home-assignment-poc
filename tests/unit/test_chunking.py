@@ -1,10 +1,15 @@
 """Unit tests for deterministic chunking."""
 
+from itertools import pairwise
 from uuid import UUID
 
 import pytest
 
-from document_pipeline.services.chunking_service import ChunkingService, deterministic_uuid, normalized_hash
+from document_pipeline.services.chunking_service import (
+    ChunkingService,
+    deterministic_uuid,
+    normalized_hash,
+)
 
 
 def test_chunking_produces_non_overlapping_core_ranges_with_overlap() -> None:
@@ -15,7 +20,7 @@ def test_chunking_produces_non_overlapping_core_ranges_with_overlap() -> None:
     assert len(chunks) > 1
     assert chunks[0].core_start == 0
     assert chunks[-1].core_end == len(text)
-    for previous, current in zip(chunks, chunks[1:], strict=False):
+    for previous, current in pairwise(chunks):
         assert previous.core_end == current.core_start
         assert current.read_start <= current.core_start
 

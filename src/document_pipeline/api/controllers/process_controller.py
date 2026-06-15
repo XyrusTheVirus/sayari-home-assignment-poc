@@ -11,7 +11,9 @@ router = APIRouter(tags=["processing"])
 
 
 @router.post("/process", response_model=ProcessResponse, status_code=status.HTTP_202_ACCEPTED)
-@router.post("/api/v1/process", response_model=ProcessResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/api/v1/process", response_model=ProcessResponse, status_code=status.HTTP_202_ACCEPTED
+)
 async def process_document(
     payload: ProcessRequest,
     request: Request,
@@ -21,6 +23,8 @@ async def process_document(
 
     max_source_bytes = request.app.state.settings.max_source_bytes
     if len(payload.text.encode("utf-8")) > max_source_bytes:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="source text is too large")
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="source text is too large"
+        )
     result = await service.start(payload.document_id, payload.text)
     return ProcessResponse(**result.__dict__)

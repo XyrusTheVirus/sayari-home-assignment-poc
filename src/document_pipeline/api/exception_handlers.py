@@ -20,8 +20,14 @@ def install_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def validation_error_handler(_request: Request, exc: RequestValidationError) -> ORJSONResponse:
+    async def validation_error_handler(
+        _request: Request, exc: RequestValidationError
+    ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"error": "validation_error", "detail": exc.errors(), "request_id": request_id_var.get()},
+            content={
+                "error": "validation_error",
+                "detail": exc.errors(),
+                "request_id": request_id_var.get(),
+            },
         )

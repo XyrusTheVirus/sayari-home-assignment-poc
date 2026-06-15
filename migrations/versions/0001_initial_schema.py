@@ -5,8 +5,6 @@ Revises:
 Create Date: 2026-06-15 00:00:00.000000
 """
 
-from collections.abc import Sequence
-
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
@@ -29,10 +27,17 @@ def upgrade() -> None:
         "FAILED",
         "CANCELLED",
         name="run_status",
+        create_type=False,
     )
-    work_status = postgresql.ENUM("PENDING", "RUNNING", "COMPLETED", "FAILED", name="work_status")
-    token_status = postgresql.ENUM("PENDING", "COMPLETED", "FAILED", name="token_status")
-    classification = postgresql.ENUM("COMPANY", "PERSON", "ADDRESS", "DATE", "UNKNOWN", name="classification")
+    work_status = postgresql.ENUM(
+        "PENDING", "RUNNING", "COMPLETED", "FAILED", name="work_status", create_type=False
+    )
+    token_status = postgresql.ENUM(
+        "PENDING", "COMPLETED", "FAILED", name="token_status", create_type=False
+    )
+    classification = postgresql.ENUM(
+        "COMPANY", "PERSON", "ADDRESS", "DATE", "UNKNOWN", name="classification", create_type=False
+    )
     bind = op.get_bind()
     run_status.create(bind, checkfirst=True)
     work_status.create(bind, checkfirst=True)
@@ -75,9 +80,15 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint("total_chunks >= 0", name="ck_document_runs_total_chunks_non_negative"),
-        sa.CheckConstraint("completed_chunks >= 0", name="ck_document_runs_completed_chunks_non_negative"),
-        sa.CheckConstraint("completed_chunks <= total_chunks", name="ck_document_runs_completed_chunks_lte_total"),
-        sa.CheckConstraint("classified_tokens >= 0", name="ck_document_runs_classified_tokens_non_negative"),
+        sa.CheckConstraint(
+            "completed_chunks >= 0", name="ck_document_runs_completed_chunks_non_negative"
+        ),
+        sa.CheckConstraint(
+            "completed_chunks <= total_chunks", name="ck_document_runs_completed_chunks_lte_total"
+        ),
+        sa.CheckConstraint(
+            "classified_tokens >= 0", name="ck_document_runs_classified_tokens_non_negative"
+        ),
         sa.CheckConstraint(
             "total_tokens IS NULL OR classified_tokens <= total_tokens",
             name="ck_document_runs_classified_tokens_lte_total_tokens",
@@ -86,7 +97,13 @@ def upgrade() -> None:
         sa.UniqueConstraint("document_id", "version", name="uq_document_runs_document_id_version"),
     )
     op.create_index("ix_document_runs_document_id", "document_runs", ["document_id"])
-    op.create_foreign_key("fk_documents_active_run_id_document_runs", "documents", "document_runs", ["active_run_id"], ["id"])
+    op.create_foreign_key(
+        "fk_documents_active_run_id_document_runs",
+        "documents",
+        "document_runs",
+        ["active_run_id"],
+        ["id"],
+    )
 
     op.create_table(
         "document_chunks",
@@ -106,7 +123,10 @@ def upgrade() -> None:
         sa.Column("error_code", sa.Text(), nullable=True),
         sa.Column("error_detail", sa.Text(), nullable=True),
         sa.CheckConstraint("attempts >= 0", name="ck_document_chunks_attempts_non_negative"),
-        sa.CheckConstraint("extracted_token_count >= 0", name="ck_document_chunks_extracted_token_count_non_negative"),
+        sa.CheckConstraint(
+            "extracted_token_count >= 0",
+            name="ck_document_chunks_extracted_token_count_non_negative",
+        ),
         sa.CheckConstraint("read_start <= read_end", name="ck_document_chunks_read_range_valid"),
         sa.CheckConstraint("core_start <= core_end", name="ck_document_chunks_core_range_valid"),
         sa.ForeignKeyConstraint(["run_id"], ["document_runs.id"], ondelete="CASCADE"),
@@ -140,10 +160,19 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint("start_offset <= end_offset", name="ck_tokens_token_offsets_valid"),
-        sa.CheckConstraint("confidence IS NULL OR (confidence >= 0 AND confidence <= 1)", name="ck_tokens_confidence_valid"),
+        sa.CheckConstraint(
+            "confidence IS NULL OR (confidence >= 0 AND confidence <= 1)",
+            name="ck_tokens_confidence_valid",
+        ),
         sa.ForeignKeyConstraint(["chunk_id"], ["document_chunks.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["run_id"], ["document_runs.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("run_id", "start_offset", "end_offset", "normalized_text_hash", name="uq_tokens_run_span_hash"),
+        sa.UniqueConstraint(
+            "run_id",
+            "start_offset",
+            "end_offset",
+            "normalized_text_hash",
+            name="uq_tokens_run_span_hash",
+        ),
     )
     op.create_index("ix_tokens_run_id", "tokens", ["run_id"])
     op.create_index("ix_tokens_chunk_id", "tokens", ["chunk_id"])
@@ -170,12 +199,25 @@ def upgrade() -> None:
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("error_code", sa.Text(), nullable=True),
         sa.Column("error_detail", sa.Text(), nullable=True),
-        sa.CheckConstraint("start_local_index <= end_local_index", name="ck_classification_batches_batch_range_valid"),
-        sa.CheckConstraint("processed_count >= 0", name="ck_classification_batches_processed_count_non_negative"),
-        sa.CheckConstraint("attempts >= 0", name="ck_classification_batches_batch_attempts_non_negative"),
+        sa.CheckConstraint(
+            "start_local_index <= end_local_index",
+            name="ck_classification_batches_batch_range_valid",
+        ),
+        sa.CheckConstraint(
+            "processed_count >= 0", name="ck_classification_batches_processed_count_non_negative"
+        ),
+        sa.CheckConstraint(
+            "attempts >= 0", name="ck_classification_batches_batch_attempts_non_negative"
+        ),
         sa.ForeignKeyConstraint(["chunk_id"], ["document_chunks.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["run_id"], ["document_runs.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("run_id", "chunk_id", "start_local_index", "end_local_index", name="uq_classification_batches_range"),
+        sa.UniqueConstraint(
+            "run_id",
+            "chunk_id",
+            "start_local_index",
+            "end_local_index",
+            name="uq_classification_batches_range",
+        ),
     )
     op.create_index("ix_classification_batches_run_id", "classification_batches", ["run_id"])
     op.create_index("ix_classification_batches_chunk_id", "classification_batches", ["chunk_id"])

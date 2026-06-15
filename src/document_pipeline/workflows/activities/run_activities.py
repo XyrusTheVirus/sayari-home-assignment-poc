@@ -7,7 +7,7 @@ from temporalio import activity
 
 from document_pipeline.errors import InvalidRunStateError
 from document_pipeline.models.domain import BatchManifest
-from document_pipeline.models.enums import RunStatus, WorkStatus
+from document_pipeline.models.enums import WorkStatus
 from document_pipeline.models.orm.token import TokenORM
 from document_pipeline.services.chunking_service import deterministic_uuid
 from document_pipeline.workflows.activities.dependencies import ActivityDependencies
@@ -115,5 +115,7 @@ async def _build_batches(dependencies: ActivityDependencies, run_id: UUID) -> li
         for start in range(0, len(indices), size):
             window = indices[start : start + size]
             batch_id = deterministic_uuid(run_id, f"batch:{chunk_id}:{window[0]}:{window[-1]}")
-            batches.append(BatchManifest(batch_id, run_id, chunk_id, window[0], window[-1], WorkStatus.PENDING))
+            batches.append(
+                BatchManifest(batch_id, run_id, chunk_id, window[0], window[-1], WorkStatus.PENDING)
+            )
     return batches

@@ -6,7 +6,9 @@ import httpx
 import pytest
 
 
-@pytest.mark.skipif(os.getenv("RUN_COMPOSE_INTEGRATION") != "1", reason="requires running Docker Compose stack")
+@pytest.mark.skipif(
+    os.getenv("RUN_COMPOSE_INTEGRATION") != "1", reason="requires running Docker Compose stack"
+)
 @pytest.mark.asyncio
 async def test_health_ready_contract() -> None:
     """Verify the API readiness endpoint against a running local stack."""

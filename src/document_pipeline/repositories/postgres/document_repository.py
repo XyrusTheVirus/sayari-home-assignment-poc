@@ -22,7 +22,9 @@ class PostgresDocumentRepository:
     async def get_by_external_id(self, external_id: str) -> DocumentRef | None:
         """Return a document by API-facing external ID."""
 
-        row = await self._session.scalar(select(DocumentORM).where(DocumentORM.external_id == external_id))
+        row = await self._session.scalar(
+            select(DocumentORM).where(DocumentORM.external_id == external_id)
+        )
         return document_ref(row) if row else None
 
     async def create_if_absent(self, external_id: str) -> DocumentRef:
@@ -42,7 +44,9 @@ class PostgresDocumentRepository:
     async def lock_by_id(self, document_id: UUID) -> DocumentRef:
         """Lock a document row while deriving the next run version."""
 
-        row = await self._session.scalar(select(DocumentORM).where(DocumentORM.id == document_id).with_for_update())
+        row = await self._session.scalar(
+            select(DocumentORM).where(DocumentORM.id == document_id).with_for_update()
+        )
         if row is None:
             raise RuntimeError("document disappeared while locking")
         return document_ref(row)

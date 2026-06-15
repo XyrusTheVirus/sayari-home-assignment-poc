@@ -26,6 +26,8 @@ class ProcessRequest(BaseModel):
     def text_is_non_empty(cls, value: str) -> str:
         """Reject empty or control-only source text."""
 
-        if not value.strip() or not any(not character.isspace() and character.isprintable() for character in value):
+        if not value.strip() or not any(
+            not character.isspace() and character.isprintable() for character in value
+        ):
             raise ValueError("text must contain printable content")
         return value

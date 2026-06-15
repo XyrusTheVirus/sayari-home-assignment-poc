@@ -90,5 +90,7 @@ class ProcessingService:
             )
         except Exception as exc:
             async with self._uow_factory.transaction() as uow:
-                await uow.runs.mark_failed(run.id, "workflow_start_failed", "Temporal workflow could not be started")
+                await uow.runs.mark_failed(
+                    run.id, "workflow_start_failed", "Temporal workflow could not be started"
+                )
             raise RetryableInfrastructureError("Temporal workflow could not be started") from exc

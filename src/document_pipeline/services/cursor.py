@@ -27,4 +27,6 @@ def decode_cursor(value: str | None) -> TokenCursor | None:
     if not value:
         return None
     payload = json.loads(base64.urlsafe_b64decode(value.encode("ascii")).decode("utf-8"))
-    return TokenCursor(payload["page_number"], int(payload["start_offset"]), UUID(payload["token_id"]))
+    return TokenCursor(
+        payload["page_number"], int(payload["start_offset"]), UUID(payload["token_id"])
+    )

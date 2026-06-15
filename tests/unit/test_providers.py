@@ -28,7 +28,9 @@ async def test_classifier_maps_supported_labels() -> None:
     """The mock classifier maps common NLP labels to assignment classifications."""
 
     classifier = MockClassifier()
-    result = await classifier.classify(ClassificationInput(uuid4(), "Acme Corp", "works at Acme Corp", "ORG"))
+    result = await classifier.classify(
+        ClassificationInput(uuid4(), "Acme Corp", "works at Acme Corp", "ORG")
+    )
     assert result.classification == Classification.COMPANY
     assert 0 <= result.confidence <= 1
     assert result.reasoning

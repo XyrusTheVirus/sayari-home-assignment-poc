@@ -1,6 +1,12 @@
 """Mapping helpers from ORM rows to domain DTOs."""
 
-from document_pipeline.models.domain import BatchManifest, ChunkManifest, DocumentRef, RunRecord, TokenView
+from document_pipeline.models.domain import (
+    BatchManifest,
+    ChunkManifest,
+    DocumentRef,
+    RunRecord,
+    TokenView,
+)
 from document_pipeline.models.orm.classification_batch import ClassificationBatchORM
 from document_pipeline.models.orm.document import DocumentORM
 from document_pipeline.models.orm.document_chunk import DocumentChunkORM

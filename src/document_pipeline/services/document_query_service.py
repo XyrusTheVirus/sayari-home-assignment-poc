@@ -26,7 +26,11 @@ class DocumentQueryService:
             document = await uow.documents.get_by_external_id(external_id)
             if document is None:
                 raise DocumentNotFoundError(external_id)
-            run = await uow.runs.get(run_id) if run_id else await uow.runs.latest_for_document(document.id)
+            run = (
+                await uow.runs.get(run_id)
+                if run_id
+                else await uow.runs.latest_for_document(document.id)
+            )
             if run is None or run.document_id != document.id:
                 raise RunNotFoundError(str(run_id))
             return StatusView(
